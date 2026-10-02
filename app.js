@@ -123,7 +123,23 @@
     }
     return score >= 0.6 ? best : null;
   }
-  const compactDates = (dates) => (dates || []).slice(0, 4).map((d) => `<span class="date-pill"><b>${esc(d.when)}</b> ${esc(d.what)}</span>`).join("");
+  // Header strip: the three dates people act on, with short labels.
+  const DATE_KINDS = [
+    [/election day|last day to vote|polls (are )?open/i, "Election Day"],
+    [/early voting.*(first|begin|start|open)|(first|begin|start).*early voting|^early voting$/i, "Early voting starts"],
+    [/regist/i, "Register by"],
+    [/mail|absentee/i, "Mail-ballot application due"],
+  ];
+  const shortWhen = (w) => String(w || "").replace(/^(Mon|Tues|Wednes|Thurs|Fri|Satur|Sun)day,\s*/i, "").replace(/,?\s*20\d\d$/, "");
+  function compactDates(dates) {
+    const picked = [];
+    for (const [re, label] of DATE_KINDS) {
+      const d = (dates || []).find((x) => re.test(x.what || "") && !picked.includes(x));
+      if (d) picked.push(Object.assign({ label }, d));
+    }
+    if (!picked.length) picked.push(...(dates || []).slice(0, 3).map((d) => Object.assign({ label: d.what }, d)));
+    return picked.slice(0, 4).map((d) => `<span class="date-pill">${esc(d.label)} <b>${esc(shortWhen(d.when))}</b></span>`).join("");
+  }
   const pickPill = (p) => (/^yes$/i.test(p) ? '<span class="pill yes">YES</span>' : /^no$/i.test(p) ? '<span class="pill no">NO</span>' : esc(p));
   const sources = (list) => (list?.length ? `<p class="sources">Sources: ${list.map((s) => link(s.title || s.url, s.url)).join(" · ")}</p>` : "");
 
