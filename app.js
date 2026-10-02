@@ -17,7 +17,7 @@
   const link = (text, url) => (safeUrl(url) ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
 
   function show(view) {
-    for (const id of ["landing", "working", "guide"]) $(id).hidden = id !== view;
+    for (const id of ["landing", "working", "queued", "guide"]) $(id).hidden = id !== view;
     window.scrollTo(0, 0);
   }
 
@@ -99,6 +99,7 @@
     if (!KEY_RE.test(rec.key || "")) { show("landing"); return; }
     history.replaceState(null, "", `?g=${encodeURIComponent(rec.key)}`);
     if (rec.status === "pending") return startWorking(rec);
+    if (rec.status === "queued") { clearInterval(clockTimer); $("queued-where").textContent = where(rec.districts); show("queued"); return; }
     clearInterval(clockTimer);
     if (rec.status === "ready") return renderGuide(rec);
     show("guide");
@@ -252,6 +253,16 @@
       } catch (err) { $("fb-msg").textContent = err.message; }
     });
   }
+
+  $("queued-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = new URLSearchParams(location.search).get("g") || "";
+    try {
+      await api("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, email: $("queued-email").value.trim() }) });
+      $("queued-form").innerHTML = '<p class="notify-msg">Thanks. We will email you the link when your guide is ready.</p>';
+    } catch (err) { $("queued-msg").style.color = "#b3262e"; $("queued-msg").textContent = err.message; }
+  });
 
   $("notify-form").addEventListener("submit", async (e) => {
     e.preventDefault();

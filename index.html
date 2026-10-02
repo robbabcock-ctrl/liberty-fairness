@@ -113,6 +113,22 @@
       <p class="elapsed">Elapsed: <span id="elapsed">0:00</span></p>
     </section>
 
+    <!-- Queued (request mode) -->
+    <section id="queued" class="wrap working" hidden>
+      <h2>We've got your request</h2>
+      <p id="queued-where" class="working-where"></p>
+      <p>Your precinct hasn't been researched yet. We build each one by hand from the official ballot and candidate records, usually <strong>within a day</strong>. Leave your email and we'll send you the link the moment it's ready, or come back to this page later.</p>
+      <form id="queued-form" class="notify">
+        <label for="queued-email"><b>Email me the link</b></label>
+        <div class="notify-row">
+          <input id="queued-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn" type="submit">Notify me</button>
+        </div>
+        <p id="queued-msg" class="notify-msg"></p>
+      </form>
+      <p class="elapsed"><a href="./">Look up a different address</a></p>
+    </section>
+
     <!-- Guide -->
     <section id="guide" hidden></section>
   </main>
