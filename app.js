@@ -199,7 +199,7 @@
       <div class="wrap guide-body">
         ${bottomLine(g)}
         ${dates || g.voting_info?.length ? `<section class="guide-section"><h2>Key dates and how to vote</h2>${dates ? `<div class="dates">${dates}</div>` : ""}${list(g.voting_info)}</section>` : ""}
-        ${grouped(g.races, race, ["Federal", "Statewide", "Legislative", "Judicial", "County", "Local"])}
+        ${grouped(g.races, race, ["Federal", "Statewide", "Legislative", "State courts", "Appellate and district courts", "Judicial", "County", "Local"])}
         ${g.measures?.length ? `<section class="guide-section"><h2>Propositions and measures</h2>${g.measures.map(measure).join("")}</section>` : ""}
         ${g.not_on_ballot?.length ? `<section class="guide-section"><h2>Not on your ballot this time</h2>${list(g.not_on_ballot)}</section>` : ""}
         ${g.caveats?.length ? `<section class="guide-section"><h2>Notes and open questions</h2>${list(g.caveats)}</section>` : ""}
