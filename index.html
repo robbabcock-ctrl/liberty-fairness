@@ -37,13 +37,20 @@
             <input id="address" name="address" type="text" required minlength="8"
                    placeholder="Street address, city, state, ZIP" autocomplete="street-address">
             <button type="submit">Get my guide</button>
+            <div class="optin">
+              <label class="check"><input id="remind" type="checkbox"> Email me about 30 days before my next election with a link to a fresh guide</label>
+              <div id="email-row" class="code-row" hidden>
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+              </div>
+            </div>
             <div id="code-row" class="code-row" hidden>
               <label for="code">Preview access code</label>
               <input id="code" name="code" type="text" autocomplete="off">
             </div>
           </form>
           <p id="form-error" class="form-error" role="alert" hidden></p>
-          <p class="privacy">We use your address only to find your voting precinct. It is not stored or shared.</p>
+          <p class="privacy">We use your address only to find your voting precinct. It is not stored or shared. If you opt in, your email is used only for election reminders.</p>
         </div>
       </div>
 
@@ -91,12 +98,10 @@
       <h2>Researching your ballot</h2>
       <p id="working-where" class="working-where"></p>
       <p>We're reading official sample ballots, candidate records, and measure details for your precinct. This usually takes <strong>5 to 10 minutes</strong>. You can leave this page open, or bookmark it and come back.</p>
-      <ul class="working-steps">
-        <li data-at="0">Finding your ballot</li>
-        <li data-at="90">Researching candidates and records</li>
-        <li data-at="300">Checking measures and costs</li>
-        <li data-at="480">Writing your guide</li>
-      </ul>
+      <div class="activity">
+        <h3>What we're doing right now</h3>
+        <ul id="activity" class="activity-list"><li class="muted">Finding your ballot</li></ul>
+      </div>
       <p class="elapsed">Elapsed: <span id="elapsed">0:00</span></p>
     </section>
 

@@ -9,8 +9,8 @@
     get(k) { try { return localStorage.getItem(k); } catch { return null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch {} },
   };
-  if (params.get("code")) store.set("lf_code", params.get("code"));
   const accessCode = () => ($("code").value || store.get("lf_code") || "").trim();
+  const KEY_RE = /^[0-9a-z]{1,8}-[pd][0-9a-f]{1,16}$/;
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => (typeof u === "string" && /^https?:\/\//i.test(u) ? u : null);
@@ -49,22 +49,54 @@
     const tick = () => {
       const s = Math.max(0, Math.floor((Date.now() - started) / 1000));
       $("elapsed").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-      document.querySelectorAll(".working-steps li").forEach((li) => li.classList.toggle("on", s >= +li.dataset.at));
     };
+    renderActivity(rec.progress);
     tick();
     clockTimer = setInterval(tick, 1000);
     clearTimeout(pollTimer);
     const poll = async () => {
       try {
         const r = await api(`/api/guide/${encodeURIComponent(rec.key)}`);
-        if (r.status === "pending") { pollTimer = setTimeout(poll, 10000); return; }
+        if (r.status === "pending") { renderActivity(r.progress); pollTimer = setTimeout(poll, 5000); return; }
+        justFinished = r.status === "ready";
         handle(r);
       } catch { pollTimer = setTimeout(poll, 15000); }
     };
     pollTimer = setTimeout(poll, 10000);
   }
 
+  let justFinished = false;
+
+  function prettyLine(line) {
+    const m = /^Reading: (https?:\/\/\S+)/.exec(line);
+    if (!m) return line;
+    try {
+      const u = new URL(m[1]);
+      const path = u.pathname.length > 1 ? u.pathname.slice(0, 60) : "";
+      return `Reading ${u.hostname.replace(/^www\./, "")}${path}`;
+    } catch { return "Reading a source"; }
+  }
+
+  function renderActivity(lines) {
+    if (!lines || !lines.length) return;
+    $("activity").innerHTML = lines.slice(-8).map((p) => `<li>${esc(prettyLine(p.line))}</li>`).join("");
+  }
+
+  const QUOTES = [
+    ["Whenever the people are well-informed, they can be trusted with their own government.", "Thomas Jefferson"],
+    ["A popular Government, without popular information, or the means of acquiring it, is but a Prologue to a Farce or a Tragedy; or, perhaps both.", "James Madison"],
+    ["Let us dare to read, think, speak, and write.", "John Adams"],
+    ["The ignorance of one voter in a democracy impairs the security of all.", "John F. Kennedy"],
+    ["If a nation expects to be ignorant and free, in a state of civilization, it expects what never was and never will be.", "Thomas Jefferson"],
+  ];
+
+  function readyBanner() {
+    const [q, who] = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+    return `<div class="ready"><div class="wrap"><div class="big">It's ready!</div><blockquote>${esc(q)}<cite>${esc(who)}</cite></blockquote></div></div>`;
+  }
+
   function handle(rec) {
+    if (!KEY_RE.test(rec.key || "")) { show("landing"); return; }
     history.replaceState(null, "", `?g=${encodeURIComponent(rec.key)}`);
     if (rec.status === "pending") return startWorking(rec);
     clearInterval(clockTimer);
@@ -153,6 +185,7 @@
     const list = (arr) => (arr?.length ? `<ul class="plain-list">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "");
 
     $("guide").innerHTML = `
+      ${justFinished ? readyBanner() : ""}
       <div class="guide-head"><div class="wrap">
         <p class="eyebrow">${esc(el.name || "Your ballot")}${el.date ? ` · ${esc(fmtDate(el.date))}` : ""}</p>
         <h1>Your voter guide</h1>
@@ -170,19 +203,58 @@
         ${g.measures?.length ? `<section class="guide-section"><h2>Propositions and measures</h2>${g.measures.map(measure).join("")}</section>` : ""}
         ${g.not_on_ballot?.length ? `<section class="guide-section"><h2>Not on your ballot this time</h2>${list(g.not_on_ballot)}</section>` : ""}
         ${g.caveats?.length ? `<section class="guide-section"><h2>Notes and open questions</h2>${list(g.caveats)}</section>` : ""}
+        ${feedbackForm(rec.key)}
         <section class="guide-section"><h2>Resources consulted</h2>
           <p class="section-note">Specific sources are linked under each race. These are the kinds of sources this guide draws on.</p>
           ${list(g.resources_consulted)}
           ${j.ballot_source && safeUrl(j.ballot_source.url) ? `<p>Ballot source: ${link(j.ballot_source.title || "Official sample ballot", j.ballot_source.url)}</p>` : ""}
         </section>
       </div>`;
+    justFinished = false;
+    wireFeedback(rec.key);
     $("copy-link").onclick = async () => {
       try { await navigator.clipboard.writeText(location.href); $("copy-link").textContent = "Link copied"; } catch {}
     };
     show("guide");
   }
 
+  // ---------- Feedback ----------
+  function feedbackForm(key) {
+    return `<section class="guide-section feedback" id="feedback">
+      <h2>Tell us what you think</h2>
+      <p>The good and the bad both help. What was useful? What was wrong, missing, or unfair?</p>
+      <form id="fb-form">
+        <div class="rating">
+          <label><input type="radio" name="rating" value="helpful"><span>Helpful</span></label>
+          <label><input type="radio" name="rating" value="mixed"><span>Mixed</span></label>
+          <label><input type="radio" name="rating" value="not-helpful"><span>Not helpful</span></label>
+        </div>
+        <label class="lbl" for="fb-good">What worked</label>
+        <textarea id="fb-good" maxlength="2000"></textarea>
+        <label class="lbl" for="fb-bad">What didn't</label>
+        <textarea id="fb-bad" maxlength="2000"></textarea>
+        <button class="btn" type="submit">Send feedback</button>
+        <span id="fb-msg" style="margin-left:12px"></span>
+      </form>
+    </section>`;
+  }
+
+  function wireFeedback(key) {
+    const form = $("fb-form");
+    if (!form) return;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const rating = (form.querySelector('input[name=rating]:checked') || {}).value || "";
+      try {
+        await api("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ key, rating, good: $("fb-good").value, bad: $("fb-bad").value }) });
+        form.innerHTML = '<p class="thanks">Thank you. We read every note.</p>';
+      } catch (err) { $("fb-msg").textContent = err.message; }
+    });
+  }
+
   // ---------- Wire up ----------
+  $("remind").addEventListener("change", () => { $("email-row").hidden = !$("remind").checked; if ($("remind").checked) $("email").focus(); });
   $("lookup").addEventListener("submit", async (e) => {
     e.preventDefault();
     $("form-error").hidden = true;
@@ -193,7 +265,8 @@
       const rec = await api("/api/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: $("address").value, code: accessCode() }),
+        body: JSON.stringify({ address: $("address").value, code: accessCode(),
+          subscribe_email: $("remind").checked ? $("email").value.trim() : "" }),
       });
       handle(rec);
     } catch (err) {
@@ -206,8 +279,8 @@
   });
 
   loadConfig().then(async () => {
-    const key = params.get("g");
-    if (!key) return;
+    const key = params.get("g") || "";
+    if (!KEY_RE.test(key)) { if (key) history.replaceState(null, "", "./"); return; }
     try { handle(await api(`/api/guide/${encodeURIComponent(key)}`)); } catch { show("landing"); }
   }).catch(() => {
     $("form-error").textContent = "The guide service is offline right now. Please try again later.";
