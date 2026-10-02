@@ -107,17 +107,40 @@
   }
 
   // ---------- Guide rendering ----------
+  const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
+  const words = (s) => new Set(String(s || "").toLowerCase().replace(/\(.*?\)/g, " ").split(/[^a-z0-9]+/).filter((w) => w && !["the", "of", "and", "a", "for", "texas", "county", "collin", "district", "no", "place"].includes(w)));
+  // Bottom-line rows point at the card with the same name; fall back to the best word overlap.
+  function targetFor(name, ids) {
+    const exact = "x-" + slug(name);
+    if (ids.has(exact)) return exact;
+    const w = words(name);
+    let best = null, score = 0;
+    for (const id of ids) {
+      const w2 = ids.get(id);
+      let inter = 0; for (const t of w) if (w2.has(t)) inter++;
+      const s = inter / Math.max(1, Math.min(w.size, w2.size));
+      if (s > score) { score = s; best = id; }
+    }
+    return score >= 0.6 ? best : null;
+  }
+  const compactDates = (dates) => (dates || []).slice(0, 4).map((d) => `<span class="date-pill"><b>${esc(d.when)}</b> ${esc(d.what)}</span>`).join("");
   const pickPill = (p) => (/^yes$/i.test(p) ? '<span class="pill yes">YES</span>' : /^no$/i.test(p) ? '<span class="pill no">NO</span>' : esc(p));
   const sources = (list) => (list?.length ? `<p class="sources">Sources: ${list.map((s) => link(s.title || s.url, s.url)).join(" · ")}</p>` : "");
 
   function bottomLine(g) {
-    const rows = (g.bottom_line || []).map((b) => `<tr>
-      <td class="race">${esc(b.race)}</td>
+    const ids = new Map();
+    for (const r of g.races || []) ids.set("x-" + slug(r.race), words(r.race));
+    for (const m of g.measures || []) ids.set("x-" + slug(m.name), words(m.name));
+    const rows = (g.bottom_line || []).map((b) => {
+      const t = targetFor(b.race, ids);
+      const name = t ? `<a class="bl-link" href="#${t}">${esc(b.race)}</a>` : esc(b.race);
+      return `<tr>
+      <td class="race">${name}</td>
       <td class="pick">${pickPill(b.pick)}${b.judgment_call ? '<span class="pill call">Close call</span>' : ""}</td>
-      <td class="reason">${esc(b.reason)}</td></tr>`).join("");
-    return `<section class="guide-section bottom-line">
+      <td class="reason">${esc(b.reason)}</td></tr>`; }).join("");
+    return `<section class="guide-section bottom-line" id="bottom-line">
       <h2>The bottom line</h2>
-      <p class="section-note">One pick per race, in ballot order. Print this card and take it with you; written notes are allowed in the voting booth in most states.</p>
+      <p class="section-note">One pick per race, in ballot order. Click a race for the full reasoning. Print this card and take it with you; written notes are allowed in the voting booth in most states.</p>
       <table class="card-table"><thead><tr><th>Race</th><th>Our pick</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table>
     </section>`;
   }
@@ -139,7 +162,7 @@
   function race(r) {
     const tags = (r.principles || []).map((p) => `<span class="tag">${esc(p)}</span>`).join("");
     const cands = r.candidates || [];
-    return `<article class="race" id="${esc(r.id || "")}">
+    return `<article class="race" id="x-${slug(r.race)}">
       <h3>${esc(r.race)}</h3>
       <p class="pickline">Our pick: <b>${esc(r.pick)}</b>${r.judgment_call ? '<span class="pill call">Close call</span>' : ""}</p>
       ${r.summary ? `<p class="summary">${esc(r.summary)}</p>` : ""}
@@ -149,11 +172,12 @@
         <div class="cands">${cands.map((c) => candidate(c, r.pick)).join("")}</div>
         ${r.case_for_others ? `<p class="other"><b>The case for the other choices:</b> ${esc(r.case_for_others)}</p>` : ""}
         ${sources(r.sources)}</details>` : sources(r.sources)}
+      <a class="back" href="#bottom-line">Back to the bottom line</a>
     </article>`;
   }
 
   function measure(m) {
-    return `<article class="race" id="${esc(m.id || "")}">
+    return `<article class="race" id="x-${slug(m.name)}">
       <h3>${esc(m.name)}</h3>
       <p class="pickline">Our pick: ${pickPill(m.pick)}${m.judgment_call ? '<span class="pill call">Close call</span>' : ""}</p>
       ${m.what_it_does ? `<p><b>What it does:</b> ${esc(m.what_it_does)}</p>` : ""}
@@ -161,6 +185,7 @@
       ${m.summary ? `<p class="summary">${esc(m.summary)}</p>` : ""}
       ${m.case_for_other_side ? `<p class="other"><b>The case for the other side:</b> ${esc(m.case_for_other_side)}</p>` : ""}
       ${sources(m.sources)}
+      <a class="back" href="#bottom-line">Back to the bottom line</a>
     </article>`;
   }
 
@@ -191,6 +216,7 @@
         <p class="eyebrow">${esc(el.name || "Your ballot")}${el.date ? ` · ${esc(fmtDate(el.date))}` : ""}</p>
         <h1>Your voter guide</h1>
         <p class="guide-meta">${esc(j.summary || where(rec.districts))}${j.precinct ? ` · Precinct ${esc(j.precinct)}` : ""}${when ? ` · Researched ${esc(when)}` : ""}</p>
+        ${g.key_dates?.length ? `<p class="date-strip">${compactDates(g.key_dates)}</p>` : ""}
         <div class="guide-actions">
           <button class="btn" onclick="window.print()">Print the bottom line</button>
           <button class="btn ghost" id="copy-link">Copy link</button>
@@ -199,19 +225,33 @@
       </div></div>
       <div class="wrap guide-body">
         ${bottomLine(g)}
-        ${dates || g.voting_info?.length ? `<section class="guide-section"><h2>Key dates and how to vote</h2>${dates ? `<div class="dates">${dates}</div>` : ""}${list(g.voting_info)}</section>` : ""}
         ${grouped(g.races, race, ["Federal", "Statewide", "Legislative", "State courts", "Appellate and district courts", "Judicial", "County", "Local"])}
         ${g.measures?.length ? `<section class="guide-section"><h2>Propositions and measures</h2>${g.measures.map(measure).join("")}</section>` : ""}
-        ${g.not_on_ballot?.length ? `<section class="guide-section"><h2>Not on your ballot this time</h2>${list(g.not_on_ballot)}</section>` : ""}
-        ${g.caveats?.length ? `<section class="guide-section"><h2>Notes and open questions</h2>${list(g.caveats)}</section>` : ""}
         ${feedbackForm(rec.key)}
-        <section class="guide-section"><h2>Resources consulted</h2>
-          <p class="section-note">Specific sources are linked under each race. These are the kinds of sources this guide draws on.</p>
-          ${list(g.resources_consulted)}
-          ${j.ballot_source && safeUrl(j.ballot_source.url) ? `<p>Ballot source: ${link(j.ballot_source.title || "Official sample ballot", j.ballot_source.url)}</p>` : ""}
+        <section class="guide-section more"><h2>More information</h2>
+          ${dates || g.voting_info?.length ? `<details><summary>Key dates and how to vote</summary>${dates ? `<div class="dates">${dates}</div>` : ""}${list(g.voting_info)}</details>` : ""}
+          ${g.not_on_ballot?.length ? `<details><summary>Not on your ballot this time</summary>${list(g.not_on_ballot)}</details>` : ""}
+          ${g.caveats?.length ? `<details><summary>Notes and open questions</summary>${list(g.caveats)}</details>` : ""}
+          <details><summary>Resources consulted</summary>
+            <p class="section-note">Specific sources are linked under each race. These are the kinds of sources this guide draws on.</p>
+            ${list(g.resources_consulted)}
+            ${j.ballot_source && safeUrl(j.ballot_source.url) ? `<p>Ballot source: ${link(j.ballot_source.title || "Official sample ballot", j.ballot_source.url)}</p>` : ""}
+          </details>
         </section>
       </div>`;
     justFinished = false;
+    $("guide").addEventListener("click", (e) => {
+      const a = e.target.closest("a.bl-link");
+      if (!a) return;
+      const target = document.getElementById(a.getAttribute("href").slice(1));
+      if (!target) return;
+      e.preventDefault();
+      const d = target.querySelector("details");
+      if (d) d.open = true;
+      target.classList.add("flash");
+      setTimeout(() => target.classList.remove("flash"), 1600);
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
     wireFeedback(rec.key);
     $("copy-link").onclick = async () => {
       try { await navigator.clipboard.writeText(location.href); $("copy-link").textContent = "Link copied"; } catch {}

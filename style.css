@@ -133,6 +133,18 @@ h1 { font: 700 44px/1.15 var(--serif); color: var(--navy); margin: 0 0 18px; }
 .card-table th { text-align: left; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 2px solid var(--line); }
 .card-table td { padding: 11px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .card-table td.race { font-weight: 600; width: 34%; }
+.card-table a.bl-link { color: var(--navy); text-decoration: none; border-bottom: 1px solid #b9c3d3; }
+.card-table a.bl-link:hover { color: var(--red); border-bottom-color: var(--red); }
+.date-strip { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.date-pill { font-size: 14px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; color: #3b4352; }
+.date-pill b { color: var(--navy); }
+.race .back { display: inline-block; margin-top: 10px; font-size: 13px; color: var(--muted); text-decoration: none; }
+.race .back:hover { color: var(--red); }
+.race.flash { box-shadow: 0 0 0 3px rgba(179,38,46,.35); transition: box-shadow .3s; }
+.race { scroll-margin-top: 16px; }
+.more details { border: 1px solid var(--line); border-radius: 8px; padding: 4px 16px; margin: 0 0 10px; }
+.more summary { cursor: pointer; font-weight: 700; color: var(--navy); padding: 10px 0; }
+.more .dates { margin: 10px 0 14px; }
 .card-table td.pick { font-weight: 700; color: var(--navy); width: 26%; }
 .card-table td.reason { color: #3b4352; }
 .card-table tr:nth-child(even) td { background: #fafbfd; }
