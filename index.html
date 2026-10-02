@@ -97,11 +97,19 @@
       <div class="spinner" aria-hidden="true"></div>
       <h2>Researching your ballot</h2>
       <p id="working-where" class="working-where"></p>
-      <p>We're reading official sample ballots, candidate records, and measure details for your precinct. A brand-new precinct takes <strong>about 20 to 30 minutes</strong> the first time; after that, everyone in the precinct gets it instantly for 24 hours. You can leave this page open, or copy the link and come back.</p>
+      <p>We're reading official sample ballots, candidate records, and measure details for your precinct. The first guide for a new area takes <strong>a few minutes</strong>; after that, everyone in the precinct gets it instantly. You can keep this page open, or have us email you the link.</p>
       <div class="activity">
         <h3>What we're doing right now</h3>
         <ul id="activity" class="activity-list"><li class="muted">Finding your ballot</li></ul>
       </div>
+      <form id="notify-form" class="notify">
+        <label for="notify-email"><b>Don't wait around.</b> Leave your email and we'll send the link the moment it's ready.</label>
+        <div class="notify-row">
+          <input id="notify-email" type="email" placeholder="you@example.com" autocomplete="email" required>
+          <button class="btn" type="submit">Email me the link</button>
+        </div>
+        <p id="notify-msg" class="notify-msg"></p>
+      </form>
       <p class="elapsed">Elapsed: <span id="elapsed">0:00</span></p>
     </section>
 

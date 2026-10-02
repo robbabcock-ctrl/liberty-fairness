@@ -110,6 +110,11 @@ h1 { font: 700 44px/1.15 var(--serif); color: var(--navy); margin: 0 0 18px; }
 .working-steps li.on { color: var(--ink); font-weight: 600; }
 .working-steps li.on::before { background: var(--navy); border-color: var(--navy); }
 .elapsed { color: var(--muted); font-size: 15px; }
+.notify { max-width: 560px; margin: 22px auto 0; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+.notify label { display: block; margin-bottom: 10px; color: #333a47; }
+.notify-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.notify-row input { flex: 1 1 220px; font: 16px var(--sans); padding: 11px 12px; border: 1.5px solid #c9d1de; border-radius: 6px; }
+.notify-msg { margin: 8px 0 0; font-size: 14px; color: var(--good); font-weight: 600; }
 
 /* Guide */
 .guide-head { border-bottom: 1px solid var(--line); background: var(--soft); }

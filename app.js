@@ -253,6 +253,16 @@
     });
   }
 
+  $("notify-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = new URLSearchParams(location.search).get("g") || "";
+    try {
+      await api("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key, email: $("notify-email").value.trim() }) });
+      $("notify-form").innerHTML = '<p class="notify-msg">We will email you the link as soon as it is ready. You can close this page.</p>';
+    } catch (err) { $("notify-msg").style.color = "#b3262e"; $("notify-msg").textContent = err.message; }
+  });
+
   // ---------- Wire up ----------
   $("remind").addEventListener("change", () => { $("email-row").hidden = !$("remind").checked; if ($("remind").checked) $("email").focus(); });
   $("lookup").addEventListener("submit", async (e) => {
