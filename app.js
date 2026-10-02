@@ -11,7 +11,6 @@
   };
   if (params.get("code")) store.set("lf_code", params.get("code"));
   const accessCode = () => ($("code").value || store.get("lf_code") || "").trim();
-  if (!store.get("lf_code")) $("code-row").hidden = false;
 
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => (typeof u === "string" && /^https?:\/\//i.test(u) ? u : null);
