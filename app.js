@@ -126,7 +126,7 @@
   // Header strip: the three dates people act on, with short labels.
   const DATE_KINDS = [
     [/election day|last day to vote|polls (are )?open/i, "Election Day"],
-    [/early voting.*(first|begin|start|open)|(first|begin|start).*early voting|^early voting$/i, "Early voting starts"],
+    [/early voting/i, "Early voting starts"],
     [/regist/i, "Register by"],
     [/mail|absentee/i, "Mail-ballot application due"],
   ];
