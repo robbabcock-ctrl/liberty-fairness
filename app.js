@@ -342,7 +342,7 @@
       const rec = await api("/api/guide", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ address: $("address").value, code: accessCode(),
+        body: JSON.stringify({ address: [$("street").value, $("city").value, $("state").value, $("zip").value].map((x) => x.trim()).filter(Boolean).join(", "), code: accessCode(),
           subscribe_email: $("remind").checked ? $("email").value.trim() : "" }),
       });
       handle(rec);

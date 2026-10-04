@@ -42,7 +42,10 @@ a { color: var(--navy-2); }
 h1 { font: 700 44px/1.15 var(--serif); color: var(--navy); margin: 0 0 18px; }
 .lede { font-size: 19px; color: #333a47; margin: 0 0 28px; }
 .lookup { display: flex; flex-wrap: wrap; gap: 10px; }
-.lookup input[type=text] { flex: 1 1 360px; font: 17px var(--sans); padding: 14px 16px; border: 1.5px solid #c9d1de; border-radius: 6px; }
+.addr-grid { flex: 1 1 100%; display: grid; grid-template-columns: 2fr 1.2fr .6fr .8fr; gap: 10px; }
+.addr-grid input { min-width: 0; }
+@media (max-width: 760px) { .addr-grid { grid-template-columns: 1fr 1fr; } .f-street { grid-column: 1 / -1; } }
+.lookup input[type=text] { flex: 1 1 160px; font: 17px var(--sans); padding: 14px 16px; border: 1.5px solid #c9d1de; border-radius: 6px; }
 .lookup input:focus { outline: 3px solid rgba(31,58,104,.18); border-color: var(--navy-2); }
 .btn { text-decoration: none; display: inline-block; }
 .lookup button, .btn { font: 700 16px var(--sans); padding: 14px 24px; border: 0; border-radius: 6px; background: var(--navy); color: #fff; cursor: pointer; }
