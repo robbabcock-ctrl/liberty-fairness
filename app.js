@@ -156,6 +156,7 @@
       <td class="reason">${esc(b.reason)}</td></tr>`; }).join("");
     return `<section class="guide-section bottom-line" id="bottom-line">
       <h2>The bottom line</h2>
+      ${g._effective ? `<p class="section-note"><b>Effective ${esc(g._effective)}.</b> Picks reflect what we knew on this date; reopen your link before you vote for any updates.</p>` : ""}
       <p class="section-note">One pick per race, in ballot order. Click a race for the full reasoning. Print this card and take it with you; written notes are allowed in the voting booth in most states.</p>
       <table class="card-table"><thead><tr><th>Race</th><th>Our pick</th><th>Why</th></tr></thead><tbody>${rows}</tbody></table>
     </section>`;
@@ -221,7 +222,10 @@
   function renderGuide(rec) {
     const g = rec.guide || {};
     const el = g.election || {};
-    const when = rec.generated_at ? new Date(rec.generated_at * 1000).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "";
+    // Effective date: when this guide's research was last updated (libraries stamp it; older guides use their build date).
+    const effIso = g.effective_date || (rec.generated_at ? new Date(rec.generated_at * 1000).toISOString().slice(0, 10) : "");
+    const eff = effIso ? new Date(effIso + "T12:00:00").toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }) : "";
+    g._effective = eff;
     const j = g.jurisdiction || {};
     const dates = (g.key_dates || []).map((d) => `<div class="date"><b>${esc(d.when)}</b>${esc(d.what)}</div>`).join("");
     const list = (arr) => (arr?.length ? `<ul class="plain-list">${arr.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "");
@@ -231,7 +235,7 @@
       <div class="guide-head"><div class="wrap">
         <p class="eyebrow">${esc(el.name || "Your ballot")}${el.date ? ` · ${esc(fmtDate(el.date))}` : ""}</p>
         <h1>Your voter guide</h1>
-        <p class="guide-meta">${esc(j.summary || where(rec.districts))}${j.precinct ? ` · Precinct ${esc(j.precinct)}` : ""}${when ? ` · Researched ${esc(when)}` : ""}</p>
+        <p class="guide-meta">${esc(j.summary || where(rec.districts))}${j.precinct ? ` · Precinct ${esc(j.precinct)}` : ""}${eff ? ` · <b>Effective ${esc(eff)}</b>` : ""}</p>
         ${g.key_dates?.length ? `<p class="date-strip">${compactDates(g.key_dates)}</p>` : ""}
         <div class="guide-actions">
           <button class="btn" onclick="window.print()">Print the bottom line</button>
