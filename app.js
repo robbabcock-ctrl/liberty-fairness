@@ -140,7 +140,16 @@
     if (!picked.length) picked.push(...(dates || []).slice(0, 3).map((d) => Object.assign({ label: d.what }, d)));
     return picked.slice(0, 4).map((d) => `<span class="date-pill">${esc(d.label)} <b>${esc(shortWhen(d.when))}</b></span>`).join("");
   }
-  const pickPill = (p) => (/^yes$/i.test(p) ? '<span class="pill yes">YES</span>' : /^no$/i.test(p) ? '<span class="pill no">NO</span>' : esc(p));
+  function gapsSection(g) {
+    if (!g.gaps || !g.gaps.length) return "";
+    const items = g.gaps.map((x) => `<li><b>${esc(x.contest)}</b><br>Why it's missing: ${esc(x.reason)}${x.expected ? `<br>When we expect it: ${esc(x.expected)}` : ""}</li>`).join("");
+    return `<section class="guide-section gap-box" id="not-yet-covered">
+      <h2>Not yet covered on your ballot</h2>
+      <p class="section-note">Your ballot includes ${g.gaps.length === 1 ? "one contest" : g.gaps.length + " contests"} we haven't been able to cover yet. We list ${g.gaps.length === 1 ? "it" : "them"} here so nothing is a surprise; this guide updates automatically when we add ${g.gaps.length === 1 ? "it" : "them"}. Your county's official sample ballot shows the full list.</p>
+      <ul class="plain-list">${items}</ul>
+    </section>`;
+  }
+  const pickPill = (p) => (/^not yet covered$/i.test(p) ? '<span class="pill gap">Not yet covered</span>' : /^yes$/i.test(p) ? '<span class="pill yes">YES</span>' : /^no$/i.test(p) ? '<span class="pill no">NO</span>' : esc(p));
   const sources = (list) => (list?.length ? `<p class="sources">Sources: ${list.map((s) => link(s.title || s.url, s.url)).join(" · ")}</p>` : "");
 
   function bottomLine(g) {
@@ -148,7 +157,7 @@
     for (const r of g.races || []) ids.set("x-" + slug(r.race), words(r.race));
     for (const m of g.measures || []) ids.set("x-" + slug(m.name), words(m.name));
     const rows = (g.bottom_line || []).map((b) => {
-      const t = targetFor(b.race, ids);
+      const t = b.gap ? "not-yet-covered" : targetFor(b.race, ids);
       const name = t ? `<a class="bl-link" href="#${t}">${esc(b.race)}</a>` : esc(b.race);
       return `<tr>
       <td class="race">${name}</td>
@@ -244,6 +253,7 @@
         </div>
       </div></div>
       <div class="wrap guide-body">
+        ${gapsSection(g)}
         ${bottomLine(g)}
         ${grouped(g.races, race, ["Federal", "Statewide", "Legislative", "State courts", "Appellate and district courts", "Judicial", "County", "Local"])}
         ${g.measures?.length ? `<section class="guide-section"><h2>Propositions and measures</h2>${g.measures.map(measure).join("")}</section>` : ""}

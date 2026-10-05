@@ -204,10 +204,16 @@ h1 { font: 700 44px/1.15 var(--serif); color: var(--navy); margin: 0 0 18px; }
 
 /* Print: the bottom-line card only, on one page */
 @media print {
-  .masthead, .footer, .guide-actions, .guide-section:not(.bottom-line), #landing, #working { display: none !important; }
+  .masthead, .footer, .guide-actions, .guide-section:not(.bottom-line):not(.gap-box), #landing, #working { display: none !important; }
   body { font-size: 11pt; }
   .guide-head { background: #fff; }
   .guide-head .wrap, .guide-body { padding: 0; }
   .card-table td, .card-table th { padding: 4px 6px; }
   .card-table td.reason { display: table-cell; font-size: 9pt; }
 }
+
+/* Contests on the voter's ballot that we have not covered yet (declared gaps) */
+.pill.gap { background: #fff4d6; color: #7a5600; border: 1px solid #e2b04a; }
+.gap-box { border: 2px solid #e2b04a; border-radius: 8px; background: #fffaf0; padding: 16px 18px; margin-bottom: 18px; }
+.gap-box h2 { margin-top: 0; }
+.gap-box li { margin: 8px 0; }
