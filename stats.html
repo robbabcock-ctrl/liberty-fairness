@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Guide Usage</title>
+  <link rel="stylesheet" href="dash.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <style>
+    #map { height:360px; border:1px solid var(--line); border-radius:8px; }
+    .bars { display:flex; gap:4px; align-items:flex-end; height:120px; border-bottom:1px solid var(--line); padding-bottom:4px; margin-bottom:24px; }
+    .bar { flex:1; background:var(--navy); min-width:6px; position:relative; }
+    .bar span { position:absolute; bottom:-20px; left:-6px; right:-6px; text-align:center; font-size:10px; color:var(--muted); }
+  </style>
+</head>
+<body>
+<header><b>Liberty &amp; Fairness</b><nav><a href="progress.html">Research progress</a><a class="on" href="stats.html">Usage</a></nav></header>
+<main>
+  <p class="asof" id="asof">Loading…</p>
+  <div class="tiles">
+    <div class="tile"><div class="n" id="t-delivered">–</div><div class="l">Guides delivered to voters</div></div>
+    <div class="tile"><div class="n" id="t-guides">–</div><div class="l">Distinct ballots built</div></div>
+    <div class="tile"><div class="n" id="t-queued">–</div><div class="l">Waiting for research</div></div>
+    <div class="tile"><div class="n" id="t-subs">–</div><div class="l">Reminder subscribers</div></div>
+    <div class="tile"><div class="n" id="t-fb">–</div><div class="l">Feedback entries</div></div>
+    <div class="tile"><div class="n" id="t-err">–</div><div class="l">Failed builds</div></div>
+  </div>
+  <p class="muted" id="fbsplit"></p>
+  <h2>Visitors by day (last 30)</h2>
+  <div class="bars" id="bars"></div>
+  <h2>Where guides were delivered</h2>
+  <p class="muted">Locations are rounded to about 10 km. No addresses are stored.</p>
+  <div id="map"></div>
+  <h2>By place</h2>
+  <div class="wrap"><table><thead><tr><th>Place</th><th>Ballots</th><th>Visits</th><th>Last built</th></tr></thead><tbody id="places"></tbody></table></div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<script>
+(async () => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  let api = "";
+  try { api = ((await (await fetch("config.json", { cache: "no-store" })).json()).apiBase || "").replace(/\/$/, ""); } catch (e) {}
+  let s;
+  try {
+    const res = await fetch(api + "/api/public/stats", { cache: "no-store" });
+    if (!res.ok) throw new Error();
+    s = await res.json();
+  } catch (e) { $("asof").innerHTML = '<span class="err">The server is offline or restarting. Try again in a minute.</span>'; return; }
+  const g = s.guides || {};
+  $("asof").textContent = "As of " + new Date().toLocaleString();
+  $("t-delivered").textContent = s.visits.total;
+  $("t-guides").textContent = g.ready || 0;
+  $("t-queued").textContent = g.queued || 0;
+  $("t-subs").textContent = s.subscribers;
+  $("t-fb").textContent = s.feedback.total;
+  $("t-err").textContent = g.error || 0;
+  const r = s.feedback.ratings || {};
+  if (s.feedback.total) $("fbsplit").textContent = `Feedback: ${r.helpful || 0} helpful · ${r.mixed || 0} mixed · ${r["not-helpful"] || 0} not helpful · ${r.none || 0} unrated`;
+  const days = s.visits_by_day.slice(-30), max = Math.max(1, ...days.map((d) => d.n));
+  const every = Math.ceil(days.length / 10);
+  $("bars").innerHTML = days.map((d, i) => `<div class="bar" title="${esc(d.day)}: ${d.n}" style="height:${Math.max(2, Math.round(d.n / max * 100))}%">${i % every === 0 ? `<span>${esc(d.day.slice(5))}</span>` : ""}</div>`).join("") || '<p class="muted">No visits yet.</p>';
+  const pts = s.points.map((p) => [p.lat, p.lon, p.n]);
+  const map = L.map("map", { scrollWheelZoom: false });
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap" }).addTo(map);
+  if (pts.length) {
+    L.heatLayer(pts, { radius: 26, blur: 18, maxZoom: 10 }).addTo(map);
+    map.fitBounds(pts.map((p) => [p[0], p[1]]), { padding: [30, 30], maxZoom: 8 });
+  } else map.setView([38, -96], 4);
+  $("places").innerHTML = s.places.map((p) => `<tr><td>${esc(p.where)}</td><td>${p.ready}</td><td>${p.visits}</td>
+    <td class="muted">${p.last ? new Date(p.last * 1000).toLocaleDateString() : ""}</td></tr>`).join("") || '<tr><td colspan="4" class="muted">None yet.</td></tr>';
+})();
+</script>
+</body>
+</html>
