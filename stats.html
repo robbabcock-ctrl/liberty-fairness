@@ -27,6 +27,9 @@
     <div class="tile"><div class="n" id="t-err">–</div><div class="l">Failed builds</div></div>
   </div>
   <p class="muted" id="fbsplit"></p>
+  <h2>People who pulled up a guide, last 5 days</h2>
+  <div class="wrap"><table><thead><tr><th>Day</th><th>People</th><th>Guide lookups</th></tr></thead><tbody id="last5"></tbody></table></div>
+  <p class="muted" style="font-size:13px">People counts each ballot and neighborhood once per day, so someone reopening their guide isn't counted twice.</p>
   <h2>Visitors by day (last 30)</h2>
   <div class="bars" id="bars"></div>
   <h2>Where guides were delivered</h2>
@@ -59,6 +62,10 @@
   $("t-err").textContent = g.error || 0;
   const r = s.feedback.ratings || {};
   if (s.feedback.total) $("fbsplit").textContent = `Feedback: ${r.helpful || 0} helpful · ${r.mixed || 0} mixed · ${r["not-helpful"] || 0} not helpful · ${r.none || 0} unrated`;
+  const fmtDay = (d) => new Date(d + "T12:00:00").toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  const l5 = s.last5 || [];
+  $("last5").innerHTML = l5.slice().reverse().map((d) => `<tr><td>${esc(fmtDay(d.day))}</td><td><b>${d.people}</b></td><td>${d.lookups}</td></tr>`).join("")
+    + `<tr><td class="muted">5-day total</td><td><b>${l5.reduce((a, d) => a + d.people, 0)}</b></td><td>${l5.reduce((a, d) => a + d.lookups, 0)}</td></tr>`;
   const days = s.visits_by_day.slice(-30), max = Math.max(1, ...days.map((d) => d.n));
   const every = Math.ceil(days.length / 10);
   $("bars").innerHTML = days.map((d, i) => `<div class="bar" title="${esc(d.day)}: ${d.n}" style="height:${Math.max(2, Math.round(d.n / max * 100))}%">${i % every === 0 ? `<span>${esc(d.day.slice(5))}</span>` : ""}</div>`).join("") || '<p class="muted">No visits yet.</p>';
