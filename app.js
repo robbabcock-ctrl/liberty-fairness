@@ -268,6 +268,14 @@
             ${j.ballot_source && safeUrl(j.ballot_source.url) ? `<p>Ballot source: ${link(j.ballot_source.title || "Official sample ballot", j.ballot_source.url)}</p>` : ""}
           </details>
         </section>
+        <section class="guide-section editorial-note" id="editorial-statement"><h2>About this guide</h2>
+          <p><b>Editorial opinion.</b> This voter guide is published by Liberty &amp; Fairness LLC, an independent editorial publisher. Its recommendations are the editorial opinions of Liberty &amp; Fairness, reached by applying the <a href="./#principles">principles</a> published on our home page.</p>
+          <p><b>Independent.</b> Liberty &amp; Fairness is not affiliated with, authorized by, paid for by, or coordinated with any candidate, candidate committee, political party, or political action committee. No candidate, campaign, or party paid for, reviewed, or approved this content, and recommendations are not for sale.</p>
+          <p><b>Check official sources.</b> Facts are sourced and linked under each race. This is not an official election publication: confirm your ballot, polling place, and deadlines with your county or local election office.</p>
+          <p><b>Corrections.</b> See something wrong? Email <a href="mailto:dani@libertyandfairness.org?subject=Correction">dani@libertyandfairness.org</a> with the race and the source, and we'll review it.</p>
+          <p class="print-only">Editorial opinion of Liberty &amp; Fairness LLC. Not affiliated with, authorized by, or coordinated with any candidate, party, or PAC. Confirm your ballot with your local election office.</p>
+          <p class="fine">&copy; ${new Date().getFullYear()} Liberty &amp; Fairness LLC. All rights reserved.</p>
+        </section>
       </div>`;
     justFinished = false;
     $("guide").addEventListener("click", (e) => {
