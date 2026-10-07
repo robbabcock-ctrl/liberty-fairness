@@ -331,7 +331,7 @@
       await api("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, email: $("queued-email").value.trim() }) });
       $("queued-form").innerHTML = '<p class="notify-msg">Thanks. We will email you the link when your guide is ready.</p>';
-    } catch (err) { $("queued-msg").style.color = "#b3262e"; $("queued-msg").textContent = err.message; }
+    } catch (err) { $("queued-msg").style.color = "#D71920"; $("queued-msg").textContent = err.message; }
   });
 
   $("notify-form").addEventListener("submit", async (e) => {
@@ -341,7 +341,7 @@
       await api("/api/notify", { method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, email: $("notify-email").value.trim() }) });
       $("notify-form").innerHTML = '<p class="notify-msg">We will email you the link as soon as it is ready. You can close this page.</p>';
-    } catch (err) { $("notify-msg").style.color = "#b3262e"; $("notify-msg").textContent = err.message; }
+    } catch (err) { $("notify-msg").style.color = "#D71920"; $("notify-msg").textContent = err.message; }
   });
 
   // ---------- Wire up ----------

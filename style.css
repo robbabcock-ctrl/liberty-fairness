@@ -1,7 +1,7 @@
 :root {
-  --navy: #14284b;
-  --navy-2: #1f3a68;
-  --red: #b3262e;
+  --navy: #002B55;
+  --navy-2: #1d4a80;
+  --red: #D71920;
   --ink: #1b1f27;
   --muted: #5b6474;
   --line: #e3e7ee;
@@ -24,9 +24,7 @@ a { color: var(--navy-2); }
 .masthead { border-top: 5px solid var(--red); border-bottom: 1px solid var(--line); background: #fff; }
 .masthead-inner { display: flex; align-items: center; justify-content: space-between; min-height: 72px; gap: 16px; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--navy); }
-.brand-mark { display: grid; gap: 3px; width: 26px; }
-.brand-mark span { height: 5px; background: var(--navy); border-radius: 1px; }
-.brand-mark span:nth-child(2) { background: var(--red); }
+.brand-logo { display: block; height: 40px; width: auto; }
 .brand-text { font: 700 20px/1.1 var(--serif); }
 .brand-text em { font-style: normal; color: var(--red); }
 .brand-text small { display: block; font: 600 11px/1.4 var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
