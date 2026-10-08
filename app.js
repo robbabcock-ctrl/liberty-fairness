@@ -253,6 +253,7 @@
         </div>
       </div></div>
       <div class="wrap guide-body">
+        ${g.degraded ? `<section class="guide-section gap-box"><h2>Some local races may be missing</h2><p>A few county or city map services didn't respond, so we couldn't confirm every local district for your address. Federal, state, and countywide races are complete. <a href="./">Try again in a few minutes</a> for the full guide.</p></section>` : ""}
         ${gapsSection(g)}
         ${bottomLine(g)}
         ${grouped(g.races, race, ["Federal", "Statewide", "Legislative", "State courts", "Appellate and district courts", "Judicial", "County", "Local"])}
